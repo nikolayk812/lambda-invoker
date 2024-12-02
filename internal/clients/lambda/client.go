@@ -51,7 +51,7 @@ func (c *client) Invoke(ctx context.Context, httpMethod, path string, body []byt
 }
 
 func (c *client) InvokeAsync(ctx context.Context, httpMethod, path string, body []byte) error {
-	if _, err := c.invoke(ctx, false, httpMethod, path, body); err != nil {
+	if _, err := c.invoke(ctx, true, httpMethod, path, body); err != nil {
 		return fmt.Errorf("invoke[async]: %w", err)
 	}
 
