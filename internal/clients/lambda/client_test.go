@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/AlekSi/pointer"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/stretchr/testify/assert"
@@ -65,7 +66,9 @@ func startLocalstack(t *testing.T) (string, error) {
 }
 
 func createClient(endpoint string) (*lambda.Client, error) {
-	cfg, err := config.LoadDefaultConfig(_ctx, config.WithRegion(region))
+	cfg, err := config.LoadDefaultConfig(_ctx,
+		config.WithRegion(region),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "")))
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadDefaultConfig: %w", err)
 	}
@@ -158,6 +161,11 @@ func zipBuffer(fileName string) (*bytes.Buffer, error) {
 func TestMain(m *testing.M) {
 	// Disable Ryuk
 	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+
+	// try
+	os.Setenv("AWS_ACCESS_KEY_ID", "test")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
+	os.Setenv("AWS_REGION", "us-east-1")
 
 	code := m.Run()
 
