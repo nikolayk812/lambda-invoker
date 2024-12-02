@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/localstack"
+	"log/slog"
 	"os"
 	"testing"
 	"time"
@@ -25,7 +26,7 @@ func TestLambdaClient(t *testing.T) {
 	endpoint, err := startLocalstack(t)
 	require.NoError(t, err)
 
-	awsCli, err := createClient(endpoint, "us-east-1")
+	awsCli, err := createClient(endpoint, "eu-central-1")
 	require.NoError(t, err)
 
 	functionARN, err := createLambda(awsCli, "my-function")
@@ -35,7 +36,7 @@ func TestLambdaClient(t *testing.T) {
 	require.NoError(t, err)
 
 	body := []byte(`{"key":"value"}`)
-	response, err := lambdaCli.Invoke(_ctx, "POST", "path", body)
+	response, err := lambdaCli.Invoke(_ctx, "POST", "/path", body)
 	require.NoError(t, err)
 
 	assert.Equal(t, "Hello from Lambda!", response)
@@ -107,19 +108,18 @@ func waitForFunction(cli *lambda.Client, functionName string) error {
 		}
 
 		if resp.Configuration != nil {
-			state := resp.Configuration.State
-			if state == types.StateActive {
-				break
-			}
-			if state == types.StateFailed {
+			switch resp.Configuration.State {
+			case types.StateActive:
+				return nil
+			case types.StateFailed:
 				return fmt.Errorf("cli.GetFunction: %s", pointer.GetString(resp.Configuration.StateReason))
+			case types.StatePending:
+				slog.Info("Function is Pending state")
 			}
 		}
 
 		time.Sleep(1 * time.Second)
 	}
-
-	return nil
 }
 
 func zipBuffer(fileName string) (*bytes.Buffer, error) {
@@ -147,4 +147,13 @@ func zipBuffer(fileName string) (*bytes.Buffer, error) {
 	}
 
 	return &buf, nil
+}
+
+func TestMain(m *testing.M) {
+	// Disable Ryuk
+	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
+
+	code := m.Run()
+
+	os.Exit(code)
 }

@@ -11,7 +11,6 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.34.0
 	github.com/testcontainers/testcontainers-go/modules/localstack v0.34.0
-	go.uber.org/mock v0.5.0
 )
 
 require (
