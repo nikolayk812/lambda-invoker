@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+const region = "eu-central-1"
+
 var _ctx = context.Background()
 
 // https://docs.localstack.cloud/user-guide/aws/lambda/
@@ -26,7 +28,7 @@ func TestLambdaClient(t *testing.T) {
 	endpoint, err := startLocalstack(t)
 	require.NoError(t, err)
 
-	awsCli, err := createClient(endpoint, "eu-central-1")
+	awsCli, err := createClient(endpoint)
 	require.NoError(t, err)
 
 	functionARN, err := createLambda(awsCli, "my-function")
@@ -44,7 +46,11 @@ func TestLambdaClient(t *testing.T) {
 
 func startLocalstack(t *testing.T) (string, error) {
 	// https://golang.testcontainers.org/modules/localstack/
-	container, err := localstack.Run(_ctx, "localstack/localstack:latest")
+	container, err := localstack.Run(_ctx, "localstack/localstack:latest", testcontainers.WithEnv(map[string]string{
+		"AWS_ACCESS_KEY_ID":     "test",
+		"AWS_SECRET_ACCESS_KEY": "test",
+		"AWS_REGION":            region,
+	}))
 	if err != nil {
 		return "", fmt.Errorf("localstack.Run: %w", err)
 	}
@@ -58,7 +64,7 @@ func startLocalstack(t *testing.T) (string, error) {
 	return endpoint, nil
 }
 
-func createClient(endpoint, region string) (*lambda.Client, error) {
+func createClient(endpoint string) (*lambda.Client, error) {
 	cfg, err := config.LoadDefaultConfig(_ctx, config.WithRegion(region))
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadDefaultConfig: %w", err)
