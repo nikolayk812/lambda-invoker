@@ -47,11 +47,7 @@ func TestLambdaClient(t *testing.T) {
 
 func startLocalstack(t *testing.T) (string, error) {
 	// https://golang.testcontainers.org/modules/localstack/
-	container, err := localstack.Run(_ctx, "localstack/localstack:latest", testcontainers.WithEnv(map[string]string{
-		"AWS_ACCESS_KEY_ID":     "test",
-		"AWS_SECRET_ACCESS_KEY": "test",
-		"AWS_REGION":            region,
-	}))
+	container, err := localstack.Run(_ctx, "localstack/localstack:latest")
 	if err != nil {
 		return "", fmt.Errorf("localstack.Run: %w", err)
 	}
@@ -68,6 +64,7 @@ func startLocalstack(t *testing.T) (string, error) {
 func createClient(endpoint string) (*lambda.Client, error) {
 	cfg, err := config.LoadDefaultConfig(_ctx,
 		config.WithRegion(region),
+		// Github Actions build fails without StaticCredentialsProvider
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("test", "test", "")))
 	if err != nil {
 		return nil, fmt.Errorf("config.LoadDefaultConfig: %w", err)
