@@ -159,13 +159,7 @@ func zipBuffer(fileName string) (*bytes.Buffer, error) {
 }
 
 func TestMain(m *testing.M) {
-	// Disable Ryuk
 	os.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
-
-	// try
-	os.Setenv("AWS_ACCESS_KEY_ID", "test")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "test")
-	os.Setenv("AWS_REGION", "us-east-1")
 
 	code := m.Run()
 
